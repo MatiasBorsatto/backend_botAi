@@ -43,6 +43,7 @@ class Prompt {
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
         respuesta: textoRespuesta,
+        prompt: req.body.prompt,
       });
     } catch (error) {
       console.error("Error al enviar el prompt:", error);
