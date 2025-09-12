@@ -26,7 +26,7 @@ class Prompt {
             {
               parts: [
                 {
-                  text: req.body.prompt, // Asumiendo que el prompt viene en req.body.prompt
+                  text: req.body.content, // Asumiendo que el prompt viene en req.body.prompt
                 },
               ],
             },
