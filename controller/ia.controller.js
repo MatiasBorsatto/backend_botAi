@@ -15,6 +15,14 @@ const apiKey = process.env.APIKEYGEMINI;
 class Prompt {
   async enviarPrompt(req, res) {
     try {
+      // Now expecting an array of messages from the frontend
+      const conversationHistory = req.body.messages; // Ensure the array is formatted correctly for the API
+
+      const formattedContents = conversationHistory.map((msg) => ({
+        role: msg.role,
+        parts: [{ text: msg.content }],
+      }));
+
       const response = await fetch(apiGemini, {
         method: "POST",
         headers: {
@@ -22,15 +30,10 @@ class Prompt {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: req.body.message.content, // Asumiendo que el prompt viene en req.body.prompt
-                },
-              ],
-            },
-          ],
+          contents: formattedContents,
+          generationConfig: {
+            candidateCount: 1,
+          },
         }),
       });
 
@@ -45,8 +48,7 @@ class Prompt {
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
-        respuesta: textoRespuesta,
-        prompt: req.body.prompt,
+        respuesta: textoRespuesta, // You may not need to send back the prompt itself since the frontend already has it
       });
     } catch (error) {
       console.error("Error al enviar el prompt:", error);
