@@ -15,8 +15,7 @@ const apiKey = process.env.APIKEYGEMINI;
 class Prompt {
   async enviarPrompt(req, res) {
     try {
-      // Now expecting an array of messages from the frontend
-      const conversationHistory = req.body.messages; // Ensure the array is formatted correctly for the API
+      const conversationHistory = req.body.messages;
 
       const formattedContents = conversationHistory.map((msg) => ({
         role: msg.role,
@@ -48,7 +47,7 @@ class Prompt {
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
-        respuesta: textoRespuesta, // You may not need to send back the prompt itself since the frontend already has it
+        respuesta: textoRespuesta,
       });
     } catch (error) {
       console.error("Error al enviar el prompt:", error);
