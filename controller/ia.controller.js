@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { marked } from "marked";
 
 // Obtener la ruta del directorio actual
 const __filename = fileURLToPath(import.meta.url);
@@ -38,7 +39,9 @@ class Prompt {
       }
 
       const data = await response.json();
-      const textoRespuesta = data.candidates[0].content.parts[0].text;
+      const textoRespuesta = marked.parse(
+        data.candidates[0].content.parts[0].text
+      );
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
