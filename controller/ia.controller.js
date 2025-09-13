@@ -15,11 +15,15 @@ const apiKey = process.env.APIKEYGEMINI;
 class Prompt {
   async enviarPrompt(req, res) {
     try {
-      const conversationHistory = req.body.messages;
+      const historico = req.body.messages;
 
-      const formattedContents = conversationHistory.map((msg) => ({
+      const contenidoFormateado = historico.map((msg) => ({
         role: msg.role,
-        parts: [{ text: msg.content }],
+        parts: [
+          {
+            text: msg.content,
+          },
+        ],
       }));
 
       const response = await fetch(apiGemini, {
@@ -29,7 +33,7 @@ class Prompt {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          contents: formattedContents,
+          contents: contenidoFormateado,
           generationConfig: {
             candidateCount: 1,
           },
