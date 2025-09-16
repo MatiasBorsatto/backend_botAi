@@ -34,7 +34,7 @@ class PromptDeepseek {
         },
         body: JSON.stringify({
           model: "deepseek-r1-distill-llama-70b",
-          contents: contenidoFormateado,
+          messages: contenidoFormateado,
           temperature: 0.6,
           max_completion_tokens: 4096,
           top_p: 0.95,
