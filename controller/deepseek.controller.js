@@ -30,7 +30,7 @@ class PromptDeepseek {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKeyDeepseek,
+          Authorization: `Bearer ${apiKeyDeepseek}`,
         },
         body: JSON.stringify({
           model: "deepseek-r1-distill-llama-70b",
