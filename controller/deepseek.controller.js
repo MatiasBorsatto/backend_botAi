@@ -44,7 +44,7 @@ class PromptDeepseek {
       }
 
       const data = await response.json();
-      const textoRespuesta = marked.parse(data.choices[0].message[0].content);
+      const textoRespuesta = marked.parse(data.choices[0].message.content);
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
