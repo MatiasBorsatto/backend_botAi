@@ -35,6 +35,7 @@ class PromptDeepseek {
           max_completion_tokens: 4096,
           top_p: 0.95,
           stream: false,
+          reasoning_format: "hidden",
         }),
       });
 
