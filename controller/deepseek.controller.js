@@ -35,7 +35,6 @@ class PromptDeepseek {
           max_completion_tokens: 4096,
           top_p: 0.95,
           stream: false,
-          stop: null,
         }),
       });
 
@@ -44,6 +43,7 @@ class PromptDeepseek {
       }
 
       const data = await response.json();
+      console.log("Respuesta cruda DeepSeek:", JSON.stringify(data, null, 2));
       const textoRespuesta = marked.parse(data.choices[0].message.content);
 
       res.status(200).json({
