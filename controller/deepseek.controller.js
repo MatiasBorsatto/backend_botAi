@@ -35,6 +35,11 @@ class PromptDeepseek {
         body: JSON.stringify({
           model: "deepseek-r1-distill-llama-70b",
           contents: contenidoFormateado,
+          temperature: 0.6,
+          max_completion_tokens: 4096,
+          top_p: 0.95,
+          stream: false,
+          stop: null,
         }),
       });
 
@@ -43,9 +48,7 @@ class PromptDeepseek {
       }
 
       const data = await response.json();
-      const textoRespuesta = marked.parse(
-        data.candidates[0].content.parts[0].text
-      );
+      const textoRespuesta = marked.parse(data.choices[0].message[0].content);
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
