@@ -19,11 +19,7 @@ class PromptDeepseek {
 
       const contenidoFormateado = historico.map((msg) => ({
         role: msg.role,
-        parts: [
-          {
-            text: msg.content,
-          },
-        ],
+        content: msg.content,
       }));
 
       const response = await fetch(apiDeepseek, {
