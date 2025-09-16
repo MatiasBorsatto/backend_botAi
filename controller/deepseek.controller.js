@@ -44,11 +44,14 @@ class PromptDeepseek {
 
       const data = await response.json();
       console.log("Respuesta cruda DeepSeek:", JSON.stringify(data, null, 2));
-      const textoRespuesta = marked.parse(data.choices[0].message.content);
+
+      const rawRespuesta = data.choices[0].message.content; // texto plano
+      const htmlRespuesta = marked.parse(rawRespuesta); // para la UI
 
       res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
-        respuesta: textoRespuesta,
+        respuesta: htmlRespuesta, // se muestra en pantalla
+        raw: rawRespuesta, // se guarda para el histórico
       });
     } catch (error) {
       console.error("Error al enviar el prompt:", error);
