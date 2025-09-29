@@ -17,101 +17,77 @@ const apiKeyDeepseek = process.env.APIKEYDEEPSEEK;
 class PromptDeepseek {
   constructor() {
     this.systemPrompt = `Eres un asistente que puede mantener conversaciones normales y gestionar contactos.
-    Si detectas un comando relacionado con contactos (crear, leer, actualizar o eliminar), 
-    responde con un JSON en este formato:
+    IMPORTANTE: Cuando detectes información de contacto como nombres, emails o teléfonos en el mensaje del usuario,
+    DEBES responder SIEMPRE con un JSON en este formato, sin excepciones:
     {
       "isCommand": true,
-      "action": "create|read|update|delete",
+      "action": "create",
       "data": {
         "nombre": "string",
         "email": "string",
         "telefono": "string"
       }
     }
-    Si es una conversación normal, responde naturalmente.`;
+    Por ejemplo, si el usuario dice "mi nombre es Juan Pérez, mi email es juan@email.com", 
+    debes responder:
+    {
+      "isCommand": true,
+      "action": "create",
+      "data": {
+        "nombre": "Juan Pérez",
+        "email": "juan@email.com",
+        "telefono": ""
+      }
+    }
+    
+    Si el usuario menciona explícitamente guardar, crear o agregar un contacto, usa action: "create".
+    Si el usuario pide buscar o ver contactos, usa action: "read".
+    Si el usuario pide modificar o actualizar, usa action: "update".
+    Si el usuario pide eliminar o borrar, usa action: "delete".
+    
+    Para cualquier otra conversación que NO incluya información de contactos, responde naturalmente.`;
   }
 
   async enviarPrompt(req, res) {
     try {
-      const historico = req.body.messages;
+      const jsonResponse = JSON.parse(rawRespuesta);
+      if (
+        jsonResponse.isCommand &&
+        jsonResponse.action &&
+        jsonResponse.data &&
+        jsonResponse.data.nombre
+      ) {
+        isCommand = true;
+        resultado = await this.executeDbOperation(jsonResponse);
 
-      // Agregar el system prompt al inicio del histórico
-      const contenidoFormateado = [
-        {
-          role: "system",
-          content: this.systemPrompt,
-        },
-        ...historico.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-      ];
+        // Mejoramos el mensaje de respuesta
+        const operacionesMsg = {
+          create: "Contacto creado",
+          read: "Contacto(s) encontrado(s)",
+          update: "Contacto actualizado",
+          delete: "Contacto eliminado",
+        };
 
-      const response = await fetch(apiDeepseek, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKeyDeepseek}`,
-        },
-        body: JSON.stringify({
-          model: "deepseek-r1-distill-llama-70b",
-          messages: contenidoFormateado,
-          temperature: 0.6,
-          max_completion_tokens: 4096,
-          top_p: 0.95,
-          stream: false,
-          reasoning_format: "hidden",
-        }),
-      });
+        const mensajeOperacion = `${
+          operacionesMsg[jsonResponse.action]
+        }: ${JSON.stringify(resultado, null, 2)}`;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        await ChatMessage.create({
+          role: "assistant",
+          content: mensajeOperacion,
+          isCommand: true,
+        });
+
+        return res.status(200).json({
+          mensaje: "Operación completada exitosamente",
+          respuesta: mensajeOperacion,
+          raw: rawRespuesta,
+          isCommand: true,
+          resultado,
+        });
       }
-
-      const data = await response.json();
-      const rawRespuesta = data.choices[0].message.content;
-
-      // Intentar detectar si es un comando JSON
-      let isCommand = false;
-      let resultado = null;
-      try {
-        const jsonResponse = JSON.parse(rawRespuesta);
-        if (jsonResponse.isCommand) {
-          isCommand = true;
-          resultado = await this.executeDbOperation(jsonResponse);
-        }
-      } catch (e) {
-        // No es un JSON, es una respuesta normal
-      }
-
-      // Guardar mensaje del usuario
-      await ChatMessage.create({
-        role: "user",
-        content: historico[historico.length - 1].content,
-        isCommand: false,
-      });
-
-      // Guardar respuesta del asistente
-      await ChatMessage.create({
-        role: "assistant",
-        content: isCommand
-          ? `Operación completada: ${resultado}`
-          : rawRespuesta,
-        isCommand,
-      });
-
-      const htmlRespuesta = marked.parse(rawRespuesta);
-
-      res.status(200).json({
-        mensaje: "Se envió correctamente el prompt",
-        respuesta: htmlRespuesta,
-        raw: rawRespuesta,
-        isCommand,
-        resultado,
-      });
-    } catch (error) {
-      console.error("Error al enviar el prompt:", error);
-      res.status(500).json({ error: error.message });
+    } catch (e) {
+      // No es un JSON válido, continuar como respuesta normal
     }
   }
 
