@@ -55,10 +55,9 @@ class PromptDeepseek {
       // Agregar el system prompt al inicio del histórico
       const contenidoFormateado = [
         {
-          role: "system",
-          content: this.systemPrompt,
+          role: "user",
+          content: historico,
         },
-        ...historico,
       ];
 
       const response = await fetch(apiDeepseek, {
@@ -69,6 +68,7 @@ class PromptDeepseek {
         },
         body: JSON.stringify({
           model: "deepseek-chat",
+          documents: this.systemPrompt,
           messages: contenidoFormateado,
           temperature: 0.7,
           max_tokens: 2000,
