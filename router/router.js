@@ -6,5 +6,6 @@ const router = express.Router();
 
 //router.post("/gemini", PromptGemini.enviarPrompt);
 router.post("/deepseek", PromptDeepseek.enviarPrompt);
+router.get("/chat-history", PromptDeepseek.getChatHistory);
 
 export default router;
