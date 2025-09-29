@@ -50,44 +50,99 @@ class PromptDeepseek {
 
   async enviarPrompt(req, res) {
     try {
-      const jsonResponse = JSON.parse(rawRespuesta);
-      if (
-        jsonResponse.isCommand &&
-        jsonResponse.action &&
-        jsonResponse.data &&
-        jsonResponse.data.nombre
-      ) {
-        isCommand = true;
-        resultado = await this.executeDbOperation(jsonResponse);
+      const historico = req.body.messages || [];
 
-        // Mejoramos el mensaje de respuesta
-        const operacionesMsg = {
-          create: "Contacto creado",
-          read: "Contacto(s) encontrado(s)",
-          update: "Contacto actualizado",
-          delete: "Contacto eliminado",
-        };
+      // Agregar el system prompt al inicio del histórico
+      const contenidoFormateado = [
+        {
+          role: "system",
+          content: this.systemPrompt,
+        },
+        ...historico,
+      ];
 
-        const mensajeOperacion = `${
-          operacionesMsg[jsonResponse.action]
-        }: ${JSON.stringify(resultado, null, 2)}`;
+      const response = await fetch(apiDeepseek, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKeyDeepseek}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: contenidoFormateado,
+          temperature: 0.7,
+          max_tokens: 2000,
+          top_p: 0.95,
+        }),
+      });
 
-        await ChatMessage.create({
-          role: "assistant",
-          content: mensajeOperacion,
-          isCommand: true,
-        });
-
-        return res.status(200).json({
-          mensaje: "Operación completada exitosamente",
-          respuesta: mensajeOperacion,
-          raw: rawRespuesta,
-          isCommand: true,
-          resultado,
-        });
+      if (!response.ok) {
+        throw new Error(`Error en la API: ${response.status}`);
       }
-    } catch (e) {
-      // No es un JSON válido, continuar como respuesta normal
+
+      const data = await response.json();
+      const rawRespuesta = data.choices[0].message.content;
+
+      try {
+        // Intentar parsear la respuesta como JSON
+        const jsonResponse = JSON.parse(rawRespuesta);
+
+        if (
+          jsonResponse.isCommand &&
+          jsonResponse.action &&
+          jsonResponse.data
+        ) {
+          // Es un comando para la base de datos
+          const resultado = await this.executeDbOperation(jsonResponse);
+
+          const operacionesMsg = {
+            create: "Contacto creado exitosamente",
+            read: "Contactos encontrados",
+            update: "Contacto actualizado exitosamente",
+            delete: "Contacto eliminado exitosamente",
+          };
+
+          // Guardar en el historial
+          await ChatMessage.create({
+            role: "assistant",
+            content: `${operacionesMsg[jsonResponse.action]}: ${JSON.stringify(
+              resultado
+            )}`,
+            isCommand: true,
+          });
+
+          return res.status(200).json({
+            success: true,
+            mensaje: operacionesMsg[jsonResponse.action],
+            resultado,
+            isCommand: true,
+          });
+        }
+      } catch (e) {
+        // No es un JSON válido, tratar como respuesta normal
+      }
+
+      // Si llegamos aquí, es una respuesta normal
+      await ChatMessage.create({
+        role: "assistant",
+        content: rawRespuesta,
+        isCommand: false,
+      });
+
+      const htmlRespuesta = marked.parse(rawRespuesta);
+
+      return res.status(200).json({
+        success: true,
+        respuesta: htmlRespuesta,
+        raw: rawRespuesta,
+        isCommand: false,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
     }
   }
 
