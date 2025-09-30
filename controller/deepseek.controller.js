@@ -24,8 +24,8 @@ class PromptDeepseek {
     this.systemPrompt = `
 Eres un asistente que:
 1) Mantiene conversaciones naturales.
-2) Traduce instrucciones en lenguaje humano a comandos JSON CRUD/define_entity.
-3) RESPONDE SIEMPRE CON UN JSON válido para Node.js / Sequelize. NUNCA Python, Java u otros lenguajes.
+2) Traduce instrucciones en lenguaje humano a comandos JSON para Node.js / Sequelize.
+3) RESPONDE SIEMPRE con un JSON válido, nunca Python, C#, Java ni ningún otro lenguaje.
 4) Formato obligatorio:
 {
   "isCommand": true,
@@ -36,8 +36,19 @@ Eres un asistente que:
   "schema": {...},   // Para define_entity
   "options": {...}   // opcional
 }
-Tipos soportados: string, text, integer, float, decimal, boolean, date, uuid, json.
-Si no es intención CRUD, responde naturalmente.`;
+5) Ejemplo de respuesta correcta para crear tabla Cliente:
+{
+  "isCommand": true,
+  "action": "define_entity",
+  "entity": "Cliente",
+  "schema": {
+    "nombre": "string",
+    "direccion": "string",
+    "saldo": "decimal"
+  }
+}
+Si la intención del usuario es CRUD o definir entidad, responde SOLO con el JSON, nada más.
+Si no, responde normalmente en texto.`;
   }
 
   // -------- Traducción de lenguaje natural a acciones --------
