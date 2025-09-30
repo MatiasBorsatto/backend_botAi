@@ -87,13 +87,13 @@ Si no, responde normalmente en texto.`;
             { role: "system", content: this.systemPrompt },
             ...contenidoFormateado,
           ],
-          format: {
-            type: "json_object",
-          },
           temperature: 0.3,
           max_tokens: 1500,
           top_p: 0.95,
         }),
+        format: {
+          type: "json_object",
+        },
       });
 
       if (!response.ok) throw new Error(`Error en la API: ${response.status}`);
