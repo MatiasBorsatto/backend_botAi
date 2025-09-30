@@ -1,7 +1,7 @@
 // controller/deepseek.controller.js
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname, format, join } from "path";
 import { marked } from "marked";
 import { Op } from "sequelize";
 import fetch from "node-fetch"; // Si Node < 18, instala node-fetch
@@ -11,6 +11,7 @@ import {
   getDynamicModel,
   ensureLooseModel,
 } from "../models/dynamicModels.js";
+import { text } from "stream/consumers";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -86,6 +87,9 @@ Si no, responde normalmente en texto.`;
             { role: "system", content: this.systemPrompt },
             ...contenidoFormateado,
           ],
+          format: {
+            type: "json_object",
+          },
           temperature: 0.3,
           max_tokens: 1500,
           top_p: 0.95,
