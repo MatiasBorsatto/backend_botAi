@@ -25,7 +25,8 @@ class PromptDeepseek {
 Eres un asistente que:
 1) Mantiene conversaciones naturales.
 2) Traduce instrucciones en lenguaje humano a comandos JSON CRUD/define_entity.
-3) Si detectas nombres de entidades y campos, genera JSON válido según formato:
+3) RESPONDE SIEMPRE CON UN JSON válido para Node.js / Sequelize. NUNCA Python, Java u otros lenguajes.
+4) Formato obligatorio:
 {
   "isCommand": true,
   "action": "create|read|update|delete|define_entity",
@@ -33,7 +34,7 @@ Eres un asistente que:
   "data": {...},     // Para create/update
   "where": {...},    // Para read/update/delete
   "schema": {...},   // Para define_entity
-  "options": {...}   // opcional: limit, order, offset
+  "options": {...}   // opcional
 }
 Tipos soportados: string, text, integer, float, decimal, boolean, date, uuid, json.
 Si no es intención CRUD, responde naturalmente.`;
@@ -89,7 +90,7 @@ Si no es intención CRUD, responde naturalmente.`;
       try {
         parsed = JSON.parse(rawRespuesta);
       } catch {
-        // No es JSON → respuesta normal
+        // No es JSON → respuesta natural
       }
 
       if (parsed?.isCommand && parsed?.entity) {
