@@ -6,6 +6,13 @@ import { sequelize } from "./config/database.js";
 const app = express();
 
 app.use(express.json());
+const allowedOrigins = [
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+  "http://localhost:5173",
+  "http://127.0.0.1:5500",
+  "https://tu-frontend-domain.com",
+];
 
 app.use(cors());
 
