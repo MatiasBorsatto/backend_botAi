@@ -6,15 +6,10 @@ import { sequelize } from "./config/database.js";
 const app = express();
 
 app.use(express.json());
-const allowedOrigins = [
-  "http://127.0.0.1:5500",
-  "http://localhost:5500",
-  "http://localhost:5173",
-  "http://127.0.0.1:5500",
-  "https://tu-frontend-domain.com",
-];
 
 app.use(cors());
+
+app.use("/api", router);
 
 app.use((req, res, next) => {
   res.setHeader("Content-Type", "application/json");
@@ -38,7 +33,5 @@ app.use((err, req, res, next) => {
     error: err.message || "Error interno del servidor",
   });
 });
-
-app.use("/api", router);
 
 export default app;
