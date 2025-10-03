@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { marked } from "marked";
+import { ChatMessage } from "../models/chatmensagge.model.js";
+import { Op } from "sequelize";
 
 // Obtener la ruta del directorio actual
 const __filename = fileURLToPath(import.meta.url);
@@ -15,17 +17,21 @@ const apiKeyDeepseek = process.env.APIKEYDEEPSEEK;
 class PromptDeepseek {
   async getChatHistory(req, res) {
     try {
+      // Aseguramos que el header Content-Type sea JSON
+      res.setHeader("Content-Type", "application/json");
+
       const messages = await ChatMessage.findAll({
         order: [["createdAt", "ASC"]],
+        raw: true, // Devuelve objetos planos
       });
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        messages: messages,
+        messages: messages || [],
       });
     } catch (error) {
       console.error("Error al obtener el historial:", error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: error.message,
       });
