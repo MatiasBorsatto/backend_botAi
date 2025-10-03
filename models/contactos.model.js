@@ -1,27 +1,39 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
 
-const Contacto = sequelize.define("Contact", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+const Contacto = sequelize.define(
+  "Contacto",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    nombre: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    telefono: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    direccion: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    notas: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
-  nombre: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  telefono: {
-    type: DataTypes.STRING,
-  },
-  localidad: {
-    type: DataTypes.STRING,
-  },
-});
+  {
+    tableName: "contactos",
+    schema: "aurai",
+  }
+);
 
 export default Contacto;
