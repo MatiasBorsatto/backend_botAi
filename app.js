@@ -6,13 +6,8 @@ import { sequelize } from "./config/database.js";
 const app = express();
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://tu-frontend.vercel.app"],
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+
+app.use(cors());
 
 app.use((req, res, next) => {
   res.setHeader("Content-Type", "application/json");
