@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, "../.env") });
 
+//const apiDeepseek = process.env.APIDEEPSEEK;
 const apiDeepseek = process.env.APIDEEPSEEK;
 const apiKeyDeepseek = process.env.APIKEYDEEPSEEK;
 
