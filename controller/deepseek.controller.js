@@ -31,11 +31,6 @@ class PromptDeepseek {
         body: JSON.stringify({
           model: "openai/gpt-oss-20b",
           messages: contenidoFormateado,
-          temperature: 0.6,
-          max_completion_tokens: 4096,
-          top_p: 0.95,
-          stream: false,
-          reasoning_format: "hidden",
         }),
       });
 
