@@ -29,7 +29,7 @@ class PromptDeepseek {
           Authorization: `Bearer ${apiKeyDeepseek}`,
         },
         body: JSON.stringify({
-          model: "deepseek-r1-distill-llama-70b",
+          model: "openai/gpt-oss-20b",
           messages: contenidoFormateado,
           temperature: 0.6,
           max_completion_tokens: 4096,
