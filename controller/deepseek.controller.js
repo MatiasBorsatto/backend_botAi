@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { marked } from "marked";
+import contactoService from "../services/contacto.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,6 +11,8 @@ dotenv.config({ path: join(__dirname, "../.env") });
 
 const apiGroq = process.env.APIDEEPSEEK;
 const apiKeyGroq = process.env.APIKEYDEEPSEEK;
+const apiKeyGroqTest = process.env.APIKEYGROQTEST;
+const urlBaseServer = process.env.BASE_URL || "http://localhost:3000";
 
 class PromptDeepseek {
   async enviarPrompt(req, res) {
@@ -75,53 +78,22 @@ class PromptDeepseek {
         });
       }
 
-      // Limitar historial (mantener system + últimos 20 mensajes)
-      let mensajesLimitados = mensajesValidos;
-      if (mensajesValidos.length > 21) {
-        const systemMessage = mensajesValidos.find((m) => m.role === "system");
-        const otrosMensajes = mensajesValidos.filter(
-          (m) => m.role !== "system"
-        );
-        const mensajesRecientes = otrosMensajes.slice(-20);
-
-        mensajesLimitados = systemMessage
-          ? [systemMessage, ...mensajesRecientes]
-          : mensajesRecientes;
-
-        console.log(
-          `Historial reducido de ${mensajesValidos.length} a ${mensajesLimitados.length} mensajes`
-        );
-      }
-
       const requestBody = {
         model: "llama-3.3-70b-versatile",
-        messages: mensajesLimitados,
+        messages: mensajesValidos,
         tool_choice: "none", // Agregar esta línea
         tools: [], // Agregar esta línea
       };
 
-      // Calcular tamaño aproximado en tokens (4 caracteres ≈ 1 token)
-      const totalChars = mensajesLimitados.reduce(
-        (sum, msg) => sum + msg.content.length,
-        0
-      );
-      const tokensAprox = Math.ceil(totalChars / 4);
-
       console.log("\n=== INFO DEL REQUEST ===");
-      console.log("Mensajes a enviar:", mensajesLimitados.length);
-      console.log("Caracteres totales:", totalChars);
-      console.log("Tokens aproximados:", tokensAprox);
+      console.log("Mensajes a enviar:", mensajesValidos.length);
       console.log("Tamaño JSON:", JSON.stringify(requestBody).length, "bytes");
-
-      if (tokensAprox > 6000) {
-        console.warn("⚠️ ADVERTENCIA: Cerca del límite de tokens");
-      }
 
       const response = await fetch(apiGroq, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKeyGroq}`,
+          Authorization: `Bearer ${apiKeyGroqTest}`,
         },
         body: JSON.stringify(requestBody),
       });
@@ -159,8 +131,7 @@ class PromptDeepseek {
           error: errorMessage,
           detalles: errorData?.error?.message || errorText.substring(0, 200),
           debug: {
-            mensajesEnviados: mensajesLimitados.length,
-            tokensAproximados: tokensAprox,
+            mensajesEnviados: mensajesValidos.length,
           },
         });
       }
@@ -174,14 +145,70 @@ class PromptDeepseek {
       }
 
       const rawRespuesta = data.choices[0].message.content;
-      const htmlRespuesta = marked.parse(rawRespuesta);
+      console.log(rawRespuesta);
+      const htmlRespuesta =
+        typeof rawRespuesta === "object"
+          ? rawRespuesta
+          : marked.parse(rawRespuesta);
 
       console.log(
         "Respuesta generada:",
         rawRespuesta.substring(0, 100) + "...\n"
       );
 
-      res.status(200).json({
+      function isValidJsonString(str) {
+        try {
+          const parsed = JSON.parse(str);
+          return typeof parsed === "object" && parsed !== null;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      if (isValidJsonString(rawRespuesta)) {
+        console.log(rawRespuesta);
+        const parsedResponse = JSON.parse(rawRespuesta);
+        console.log(parsedResponse.contacts);
+        switch (parsedResponse.operation) {
+          case "POST":
+            try {
+              const infoContacto = await fetch(`${urlBaseServer}/api/guardar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(parsedResponse.contacts),
+              });
+
+              if (!infoContacto.ok) {
+                throw new Error(
+                  `Error al guardar contacto: ${infoContacto.statusText}`
+                );
+              }
+
+              const resultado = await infoContacto.json();
+
+              return res.status(200).json({
+                mensaje: "Contacto guardado exitosamente",
+                contacto: resultado,
+                respuesta: rawRespuesta,
+                raw: parsedResponse,
+              });
+            } catch (error) {
+              console.error("Error al guardar contacto:", error);
+              return res.status(500).json({
+                error: "Error al procesar/guardar el contacto",
+                detalles: error.message,
+              });
+            }
+
+          default:
+            return res.status(400).json({
+              error: "Operación no soportada",
+              operation: parsedResponse.operation,
+            });
+        }
+      }
+
+      return res.status(200).json({
         mensaje: "Se envió correctamente el prompt",
         respuesta: htmlRespuesta,
         raw: rawRespuesta,
@@ -195,6 +222,34 @@ class PromptDeepseek {
       res.status(500).json({
         error: error.message,
         tipo: error.constructor.name,
+      });
+    }
+  }
+
+  async guardarContacto(req, res) {
+    try {
+      const contactoData = req.body;
+      console.log("Datos recibidos:", contactoData);
+
+      // Validar campos requeridos
+      if (!contactoData || typeof contactoData !== "object") {
+        return res.status(400).json({
+          error: "Datos de contacto inválidos",
+        });
+      }
+
+      // Llamar al servicio para guardar el contacto
+      const nuevoContacto = await contactoService.guardarContacto(contactoData);
+
+      return res.status(201).json({
+        mensaje: "Contacto guardado correctamente",
+        contacto: nuevoContacto,
+      });
+    } catch (error) {
+      console.error("Error guardando contacto:", error);
+      return res.status(500).json({
+        error: "Error al guardar el contacto",
+        detalles: error.message,
       });
     }
   }
