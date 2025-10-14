@@ -8,12 +8,12 @@ const PORT = process.env.PORT;
 
 const interfaces = os.networkInterfaces();
 let ip = "localhost";
-for (const iface of Object.values(interfaces).flat()) {
-  if (iface.family === "IPv4" && !iface.internal) {
-    ip = iface.address;
-    break;
-  }
-}
+// for (const iface of Object.values(interfaces).flat()) {
+//   if (iface.family === "IPv4" && !iface.internal) {
+//     ip = iface.address;
+//     break;
+//   }
+// }
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor corriendo en http://${ip}:${PORT}`);
