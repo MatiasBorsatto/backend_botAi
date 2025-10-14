@@ -36,11 +36,11 @@ class PromptDeepseek {
       });
 
       if (!response.ok) {
+        console.log(response);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Respuesta cruda DeepSeek:", JSON.stringify(data, null, 2));
 
       const rawRespuesta = data.choices[0].message.content; // texto plano
       const htmlRespuesta = marked.parse(rawRespuesta); // para la UI
