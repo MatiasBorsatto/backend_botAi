@@ -41,6 +41,15 @@ class ContactoService {
       throw error;
     }
   }
+
+  async obtenerContactos() {
+    try {
+      return Contacto.findAll();
+    } catch (error) {
+      console.error("Error en ContactoService.obtenerContactos:", error);
+      throw error;
+    }
+  }
 }
 
 export default new ContactoService();

@@ -168,7 +168,7 @@ class PromptDeepseek {
       if (isValidJsonString(rawRespuesta)) {
         console.log(rawRespuesta);
         const parsedResponse = JSON.parse(rawRespuesta);
-        console.log(parsedResponse.contacts);
+        console.log(parsedResponse.operation);
         switch (parsedResponse.operation) {
           case "POST":
             try {
@@ -196,6 +196,40 @@ class PromptDeepseek {
               console.error("Error al guardar contacto:", error);
               return res.status(500).json({
                 error: "Error al procesar/guardar el contacto",
+                detalles: error.message,
+              });
+            }
+
+          case "GET":
+            try {
+              const infoContacto = await fetch(
+                `${urlBaseServer}/api/obtener-contactos`,
+                {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+
+              if (!infoContacto.ok) {
+                throw new Error(
+                  `Error al obtener contactos: ${infoContacto.statusText}`
+                );
+              }
+
+              const resultado = await infoContacto.json();
+
+              console.log();
+
+              return res.status(200).json({
+                mensaje: "Contactos obtenidos exitosamente",
+                contacto: resultado.contacto,
+                respuesta: rawRespuesta,
+                raw: parsedResponse,
+              });
+            } catch (error) {
+              console.error("Error al obtener los contactos:", error);
+              return res.status(500).json({
+                error: "Error al obtener los contactos",
                 detalles: error.message,
               });
             }
@@ -249,6 +283,23 @@ class PromptDeepseek {
       console.error("Error guardando contacto:", error);
       return res.status(500).json({
         error: "Error al guardar el contacto",
+        detalles: error.message,
+      });
+    }
+  }
+
+  async obtenerContactos(req, res) {
+    try {
+      const contactosObtenidos = await contactoService.obtenerContactos();
+
+      return res.status(200).json({
+        mensaje: "Contactos obtenidos correctamente",
+        contacto: contactosObtenidos,
+      });
+    } catch (error) {
+      console.error("Error obteniendo contactos:", error);
+      return res.status(500).json({
+        error: "Error al obtener contactos",
         detalles: error.message,
       });
     }
