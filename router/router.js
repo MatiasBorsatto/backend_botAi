@@ -1,13 +1,11 @@
 import express from "express";
-import PromptGemini from "../controller/gemini.controller.js";
-import PromptDeepseek from "../controller/deepseek.controller.js";
+import Prompt from "../controller/ai.controller.js";
 
 const router = express.Router();
 
-//router.post("/gemini", PromptGemini.enviarPrompt);
-router.post("/deepseek", PromptDeepseek.enviarPrompt);
-router.post("/guardar", PromptDeepseek.guardarContacto);
-router.get("/obtener-contactos", PromptDeepseek.obtenerContactos);
-//router.get("/chat-history", PromptDeepseek.getChatHistory);
+router.post("/prompt", Prompt.enviarPrompt);
+router.post("/guardar", Prompt.guardarContacto);
+router.get("/obtener-contactos", Prompt.obtenerContactos);
+//router.get("/chat-history", Prompt.getChatHistory);
 
 export default router;

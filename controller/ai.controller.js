@@ -9,12 +9,12 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, "../.env") });
 
-const apiGroq = process.env.APIDEEPSEEK;
-const apiKeyGroq = process.env.APIKEYDEEPSEEK;
+const apiGroq = process.env.APIGROQ;
+const apiKeyGroq = process.env.APIKEYGROQ;
 const apiKeyGroqTest = process.env.APIKEYGROQTEST;
 const urlBaseServer = process.env.BASE_URL || "http://localhost:3000";
 
-class PromptDeepseek {
+class Prompt {
   async enviarPrompt(req, res) {
     try {
       const historico = req.body.messages;
@@ -306,4 +306,4 @@ class PromptDeepseek {
   }
 }
 
-export default new PromptDeepseek();
+export default new Prompt();
