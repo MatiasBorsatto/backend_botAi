@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { marked } from "marked";
 import contactoService from "../services/contacto.service.js";
+import usuarioService from "../services/usuario.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -300,6 +301,39 @@ class Prompt {
       console.error("Error obteniendo contactos:", error);
       return res.status(500).json({
         error: "Error al obtener contactos",
+        detalles: error.message,
+      });
+    }
+  }
+
+  async guardarHistorial(req, res) {
+    try {
+      const mensajes = Array.isArray(req.body) ? req.body : req.body.messages;
+
+      if (!mensajes || !Array.isArray(mensajes) || mensajes.length === 0) {
+        return res.status(400).json({
+          error: "No hay mensajes válidos para guardar",
+        });
+      }
+
+      const historial = {
+        titulo: "Conversación sobre JavaScript",
+        historial: mensajes, // Array de mensajes
+        usuario_id: 1, // ID del usuario autenticado
+      };
+      console.log("Datos del historial:", historial);
+
+      // Llamar al servicio para guardar el contacto
+      const nuevoChat = await usuarioService.guardarHistorial(historial);
+
+      return res.status(201).json({
+        mensaje: "Conversacion guardada correctamente",
+        contacto: nuevoChat,
+      });
+    } catch (error) {
+      console.error("Error guardando conversacion:", error);
+      return res.status(500).json({
+        error: "Error al guardar la conversacion",
         detalles: error.message,
       });
     }

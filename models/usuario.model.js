@@ -32,7 +32,4 @@ Usuario.init(
   }
 );
 
-// Asegurar que el modelo está sincronizado con la base de datos
-await sequelize.sync();
-
 export default Usuario;
