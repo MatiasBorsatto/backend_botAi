@@ -35,8 +35,10 @@ class AuthController {
         }
       );
 
+      const usuarioId = usuario.id_usuario;
+
       // Responder con token
-      res.json({ message: "Login correcto!", token });
+      res.json({ message: "Login correcto!", token, usuarioId });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Error en el servidor" });
