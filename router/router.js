@@ -16,5 +16,6 @@ router.get("/obtener-contactos", Prompt.obtenerContactos);
 
 //router.get("/chat-history", Prompt.getChatHistory);
 router.post("/guardar-contexto", aiController.guardarHistorial);
+router.get("/obtener-contexto", aiController.obtenerHistorial);
 
 export default router;

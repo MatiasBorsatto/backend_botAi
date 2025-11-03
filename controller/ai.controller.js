@@ -310,6 +310,11 @@ class Prompt {
     try {
       const mensajes = Array.isArray(req.body) ? req.body : req.body.messages;
 
+      const usuario_id = req.headers.usuario;
+
+      const historialesUsuario =
+        await usuarioService.obtenerHistorialPorUsuario(usuario_id);
+
       if (!mensajes || !Array.isArray(mensajes) || mensajes.length === 0) {
         return res.status(400).json({
           error: "No hay mensajes válidos para guardar",
@@ -319,7 +324,7 @@ class Prompt {
       const historial = {
         titulo: "Conversación sobre JavaScript",
         historial: mensajes, // Array de mensajes
-        usuario_id: 1, // ID del usuario autenticado
+        usuario_id: usuario_id, // ID del usuario autenticado
       };
       console.log("Datos del historial:", historial);
 
@@ -334,6 +339,27 @@ class Prompt {
       console.error("Error guardando conversacion:", error);
       return res.status(500).json({
         error: "Error al guardar la conversacion",
+        detalles: error.message,
+      });
+    }
+  }
+
+  async obtenerHistorial(req, res) {
+    try {
+      const usuario_id = req.headers.usuario;
+
+      const contexto = await usuarioService.obtenerHistorialPorUsuario(
+        usuario_id
+      );
+
+      return res.status(201).json({
+        mensaje: "Historiales obtenidos correctamente",
+        historiales: contexto,
+      });
+    } catch (error) {
+      console.error("Error guardando conversacion:", error);
+      return res.status(500).json({
+        error: "Error al obtener el historial",
         detalles: error.message,
       });
     }

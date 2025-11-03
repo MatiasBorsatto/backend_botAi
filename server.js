@@ -22,8 +22,8 @@ app.listen(PORT, "0.0.0.0", () => {
 // Manejo de errores del servidor
 app.on("error", (error) => {
   if (error.code === "EADDRINUSE") {
-    console.error(`⚠️ El puerto ${PORT} está en uso`);
+    console.error(`El puerto ${PORT} está en uso`);
   } else {
-    console.error("⚠️ Error del servidor:", error);
+    console.error("Error del servidor:", error);
   }
 });
