@@ -219,18 +219,92 @@ class Prompt {
 
               const resultado = await infoContacto.json();
 
-              console.log();
+              const respuestaReal = {
+                operation: "GET",
+                contacts: resultado.contacto || [], // ✅ Usar datos de la BD
+                reason:
+                  resultado.contacto && resultado.contacto.length > 0
+                    ? "Contactos encontrados"
+                    : "No hay contactos guardados",
+              };
 
               return res.status(200).json({
                 mensaje: "Contactos obtenidos exitosamente",
-                contacto: resultado.contacto,
-                respuesta: rawRespuesta,
-                raw: parsedResponse,
+                respuesta: JSON.stringify(respuestaReal),
+                raw: respuestaReal,
               });
             } catch (error) {
               console.error("Error al obtener los contactos:", error);
               return res.status(500).json({
                 error: "Error al obtener los contactos",
+                detalles: error.message,
+              });
+            }
+
+          // Agregar estos casos en el switch de parsedResponse.operation
+
+          case "PUT":
+            try {
+              const infoContacto = await fetch(
+                `${urlBaseServer}/api/actualizar`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(parsedResponse.contacts),
+                }
+              );
+
+              if (!infoContacto.ok) {
+                throw new Error(
+                  `Error al actualizar contacto: ${infoContacto.statusText}`
+                );
+              }
+
+              const resultado = await infoContacto.json();
+
+              return res.status(200).json({
+                mensaje: "Contacto actualizado exitosamente",
+                contacto: resultado,
+                respuesta: rawRespuesta,
+                raw: parsedResponse,
+              });
+            } catch (error) {
+              console.error("Error al actualizar contacto:", error);
+              return res.status(500).json({
+                error: "Error al actualizar el contacto",
+                detalles: error.message,
+              });
+            }
+
+          case "DELETE":
+            try {
+              const infoContacto = await fetch(
+                `${urlBaseServer}/api/eliminar`,
+                {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(parsedResponse.contacts),
+                }
+              );
+
+              if (!infoContacto.ok) {
+                throw new Error(
+                  `Error al eliminar contacto: ${infoContacto.statusText}`
+                );
+              }
+
+              const resultado = await infoContacto.json();
+
+              return res.status(200).json({
+                mensaje: "Contacto eliminado exitosamente",
+                resultado: resultado,
+                respuesta: rawRespuesta,
+                raw: parsedResponse,
+              });
+            } catch (error) {
+              console.error("Error al eliminar contacto:", error);
+              return res.status(500).json({
+                error: "Error al eliminar el contacto",
                 detalles: error.message,
               });
             }
@@ -309,11 +383,8 @@ class Prompt {
   async guardarHistorial(req, res) {
     try {
       const mensajes = Array.isArray(req.body) ? req.body : req.body.messages;
-
       const usuario_id = req.headers.usuario;
-
-      const historialesUsuario =
-        await usuarioService.obtenerHistorialPorUsuario(usuario_id);
+      const id_chat = req.body.id_chat || null;
 
       if (!mensajes || !Array.isArray(mensajes) || mensajes.length === 0) {
         return res.status(400).json({
@@ -321,24 +392,40 @@ class Prompt {
         });
       }
 
-      const historial = {
-        titulo: "Conversación sobre JavaScript",
-        historial: mensajes, // Array de mensajes
-        usuario_id: usuario_id, // ID del usuario autenticado
-      };
-      console.log("Datos del historial:", historial);
+      const titulo =
+        mensajes.find((m) => m.role === "user")?.content?.slice(0, 50) ||
+        "Nuevo chat";
 
-      // Llamar al servicio para guardar el contacto
+      const historial = {
+        titulo,
+        historial: mensajes,
+        usuario_id,
+      };
+
+      // ✅ Si ya existe un chat activo → actualizar
+      if (id_chat) {
+        const chatActualizado = await usuarioService.actualizarHistorial(
+          id_chat,
+          mensajes
+        );
+
+        return res.status(200).json({
+          mensaje: "Historial actualizado correctamente",
+          id_chat: chatActualizado.id_chat,
+        });
+      }
+
+      // 🆕 Si no existe → crear nuevo
       const nuevoChat = await usuarioService.guardarHistorial(historial);
 
       return res.status(201).json({
-        mensaje: "Conversacion guardada correctamente",
-        contacto: nuevoChat,
+        mensaje: "Nuevo historial creado correctamente",
+        id_chat: nuevoChat.id_chat,
       });
     } catch (error) {
-      console.error("Error guardando conversacion:", error);
+      console.error("Error guardando conversación:", error);
       return res.status(500).json({
-        error: "Error al guardar la conversacion",
+        error: "Error al guardar la conversación",
         detalles: error.message,
       });
     }
@@ -360,6 +447,66 @@ class Prompt {
       console.error("Error guardando conversacion:", error);
       return res.status(500).json({
         error: "Error al obtener el historial",
+        detalles: error.message,
+      });
+    }
+  }
+
+  // Agregar estos métodos a tu clase Prompt existente
+
+  async actualizarContacto(req, res) {
+    try {
+      const contactoData = req.body;
+      console.log("Datos recibidos para actualizar:", contactoData);
+
+      // Validar campos requeridos
+      if (!contactoData || typeof contactoData !== "object") {
+        return res.status(400).json({
+          error: "Datos de contacto inválidos",
+        });
+      }
+
+      // Llamar al servicio para actualizar el contacto
+      const contactoActualizado = await contactoService.actualizarContacto(
+        contactoData
+      );
+
+      return res.status(200).json({
+        mensaje: "Contacto actualizado correctamente",
+        contacto: contactoActualizado,
+      });
+    } catch (error) {
+      console.error("Error actualizando contacto:", error);
+      return res.status(500).json({
+        error: "Error al actualizar el contacto",
+        detalles: error.message,
+      });
+    }
+  }
+
+  async eliminarContacto(req, res) {
+    try {
+      const contactoData = req.body;
+      console.log("Datos recibidos para eliminar:", contactoData);
+
+      // Validar campos requeridos
+      if (!contactoData || typeof contactoData !== "object") {
+        return res.status(400).json({
+          error: "Datos de contacto inválidos",
+        });
+      }
+
+      // Llamar al servicio para eliminar el contacto
+      const resultado = await contactoService.eliminarContacto(contactoData);
+
+      return res.status(200).json({
+        mensaje: "Contacto eliminado correctamente",
+        resultado: resultado,
+      });
+    } catch (error) {
+      console.error("Error eliminando contacto:", error);
+      return res.status(500).json({
+        error: "Error al eliminar el contacto",
         detalles: error.message,
       });
     }
