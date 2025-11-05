@@ -2,6 +2,7 @@ import express from "express";
 import Prompt from "../controller/ai.controller.js";
 import authController from "../controller/auth.controller.js";
 import aiController from "../controller/ai.controller.js";
+import { verificarToken } from "../middleware/verificarLogin.js";
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.post("/login", authController.login);
 router.post("/register", authController.register);
 
 //Manejo de rutas para logica de negocio en cuanto a interaccion con la ia
-router.post("/prompt", Prompt.enviarPrompt);
+router.post("/prompt", verificarToken, Prompt.enviarPrompt);
 
 //CRUD Contactos
 router.post("/guardar", Prompt.guardarContacto);

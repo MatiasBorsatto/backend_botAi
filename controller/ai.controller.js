@@ -167,9 +167,9 @@ class Prompt {
       }
 
       if (isValidJsonString(rawRespuesta)) {
-        console.log(rawRespuesta);
+        //console.log(rawRespuesta);
         const parsedResponse = JSON.parse(rawRespuesta);
-        console.log(parsedResponse.operation);
+        //console.log(parsedResponse.operation);
         switch (parsedResponse.operation) {
           case "POST":
             try {

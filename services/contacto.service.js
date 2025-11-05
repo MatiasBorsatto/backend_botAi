@@ -13,15 +13,15 @@ class ContactoService {
       const resultados = await Promise.all(
         datos.map(async (contacto) => {
           // Validar campos requeridos
-          if (!contacto.name || !contacto.email) {
-            throw new Error("Nombre y email son campos requeridos");
+          if (!contacto.name || !contacto.phone) {
+            throw new Error("Nombre y telefono son campos requeridos");
           }
 
           // Crear el contacto usando build y save por separado
           const nuevoContacto = Contacto.build({
             name: contacto.name,
-            email: contacto.email,
-            phone: contacto.phone || null,
+            email: contacto.email || null,
+            phone: contacto.phone,
           });
 
           // Validar antes de guardar
