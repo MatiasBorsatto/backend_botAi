@@ -109,6 +109,16 @@ class UsuarioService {
       throw error;
     }
   }
+
+  async eliminarHistorial(chat_id) {
+    const res = await Chat.findByPk(chat_id);
+
+    if (!res) {
+      throw new Error("Historial no encontrado");
+    }
+
+    return await res.destroy();
+  }
 }
 
 export default new UsuarioService();

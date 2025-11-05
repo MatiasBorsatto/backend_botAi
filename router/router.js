@@ -15,11 +15,11 @@ router.post("/prompt", Prompt.enviarPrompt);
 //CRUD Contactos
 router.post("/guardar", Prompt.guardarContacto);
 router.get("/obtener-contactos", Prompt.obtenerContactos);
-router.put("/actualizar", Prompt.actualizarContacto); // ✅ NUEVO
-router.delete("/eliminar", Prompt.eliminarContacto); // ✅ NUEVO
+router.put("/actualizar", Prompt.actualizarContacto);
+router.delete("/eliminar", Prompt.eliminarContacto);
 
-//router.get("/chat-history", Prompt.getChatHistory);
 router.post("/guardar-contexto", aiController.guardarHistorial);
 router.get("/obtener-contexto", aiController.obtenerHistorial);
+router.delete("/borrar-contexto", aiController.eliminarContexto);
 
 export default router;

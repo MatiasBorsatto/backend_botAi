@@ -511,6 +511,33 @@ class Prompt {
       });
     }
   }
+
+  async eliminarContexto(req, res) {
+    try {
+      const { chat_id } = req.body;
+
+      console.log("Intentando eliminar chat:", chat_id); // ✅ Debug
+
+      if (!chat_id) {
+        return res.status(400).json({
+          error: "chat_id es requerido",
+        });
+      }
+
+      const resultado = await usuarioService.eliminarHistorial(chat_id);
+
+      return res.status(200).json({
+        mensaje: "Chat eliminado correctamente",
+        resultado: resultado,
+      });
+    } catch (error) {
+      console.error("Error eliminando chat:", error);
+      return res.status(500).json({
+        error: "Error al eliminar el chat",
+        detalles: error.message,
+      });
+    }
+  }
 }
 
 export default new Prompt();
