@@ -11,7 +11,7 @@ router.post("/login", authController.login);
 router.post("/register", authController.register);
 
 //Manejo de rutas para logica de negocio en cuanto a interaccion con la ia
-router.post("/prompt", verificarToken, Prompt.enviarPrompt);
+router.post("/prompt", Prompt.enviarPrompt);
 
 //CRUD Contactos
 router.post("/guardar", Prompt.guardarContacto);
